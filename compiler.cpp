@@ -18,7 +18,7 @@ bool hasprintf = false;			//ÊÇ·ñÓĞprintf;
 bool hasscanf = false;			//ÊÇ·ñÓĞscanf
 int  call_rule = 0;				//µ÷ÓÃ¹æÔò,0ÎªC,1Îªstdcall
 
-char name[MAXC][MAXWORD];	//´æ±êÊ¶·û
+string name[MAXWORD];	//´æ±êÊ¶·û
 /*1*/
 //string name[MAXWORD];
 //char asmpr[MAXOP][150];		//´æ»ã±àÖ¸Áî
@@ -32,16 +32,16 @@ int order = 0;					//ËÄÔªÊ½±äÁ¿ÏÂ±ê
 int lev = 0;						//²ãÊı
 
 char re[10];					//ÓÃÀ´´«µİÁÙÊ±±äÁ¿µÄ×ÛºÏÊôĞÔ
-char tempname[10];				//ÓÃÀ´´æ·ÅÁÙÊ±±äÁ¿Ãû
+string tempname;				//ÓÃÀ´´æ·ÅÁÙÊ±±äÁ¿Ãû
 int errornum = 0, error[MAXERROR], errorline[MAXERROR];//´íÎóÊı,´íÎóĞÅÏ¢´úÂëºÍ´íÎóËùÔÚĞĞ
-char trans[MAXWORD];//Ìí¼Ó¿ªÍ·µÄ±êÊ¶ÖĞ×ª
+string trans;//Ìí¼Ó¿ªÍ·µÄ±êÊ¶ÖĞ×ª
 
 //char tempstringname[10];		//´æ·ÅÁÙÊ±×Ö·û´®Ãû×Ö
 int stringorder = 0;				//´æ·Å×Ö·û´®±êºÅ
 
 int lableorder = 0;				//±êºÅÏÂ±ê±äÁ¿
 int adr = 0;						//Ã¿¸öº¯ÊıÄÚ±äÁ¿Æ«ÒÆµØÖ·
-char shelltoken[20];			//×îºó½âÊÍ³ÌĞòµÄtoken
+string shelltoken;			//×îºó½âÊÍ³ÌĞòµÄtoken
 
 int lastsym = 0;//ÉÏÒ»¸ö×Ö·û
 int type = 0;
@@ -73,16 +73,19 @@ int getsym()
 	char ch;//¶ÁÈëµÄ×Ö·û				
 	int i, j, m;
 	//¶Áµ½µÚÒ»¸ö·Ç¿Õ×Ö·û
-	ch = fgetc(FIN);//¶ÁÈëÒ»¸ö×Ö·û
+		in.get(ch);
+		//ch = fgetc(FIN);//¶ÁÈëÒ»¸ö×Ö·û
 	while (isspace(ch))//´¦Àí¿Õ¸ñ
 	{
-		putc(ch, FOUT);//Ö±½ÓÊä³ö
+		out << ch;
+		//putc(ch, FOUT);//Ö±½ÓÊä³ö
 		if (ch == '\n')
 		{
 			linenum++;//ĞĞºÅ¼Ó1
 			printf("%d:\t", linenum);//Êä³öĞĞºÅ
 		}
-		ch = fgetc(FIN);
+		in.get(ch);
+		//ch = fgetc(FIN);
 	}
 
 	i = 0;//
@@ -93,8 +96,10 @@ int getsym()
 	//Èç¹ûÊÇ×ÖÄ¸
 	if (isalpha(ch) || ch == '_')
 	{
-		putc(ch, FOUT);//Êä³ö
-		ch = fgetc(FIN);
+		out << ch;
+		//putc(ch, FOUT);//Êä³ö
+		in.get(ch);
+		//ch = fgetc(FIN);
 		while (isalpha(ch) || isdigit(ch) || ch == '_')//Èç¹ûÊÇ×Ö·ûÊı×Ö
 		{
 			Word[i] = ch;//Á¬½Ó
@@ -106,23 +111,31 @@ int getsym()
 				i--;
 				Word[i] = '\0';//½áÊø
 				//Ìø¹ı¹ı³¤µÄ²¿·Ö
-				putc(ch, FOUT);
-				ch = fgetc(FIN);
+				out << ch;
+				in.get(ch);
+				//putc(ch, FOUT);
+				//ch = fgetc(FIN);
 				while (isalpha(ch) || isdigit(ch) || ch == '_')
 				{
-					putc(ch, FOUT);
-					ch = fgetc(FIN);
+					out << ch;
+					in.get(ch);
+					//putc(ch, FOUT);
+					//ch = fgetc(FIN);
 				}
-				ungetc(ch, FIN);//»ØÍËÒ»¸ö
+				in.seekg(1, ios::cur);
+				//ungetc(ch, FIN);//»ØÍËÒ»¸ö
 				lastsym = 1;
 				return 1;//ÊÇ±êÊ¶·û
 			}
-			putc(ch, FOUT);
-			ch = fgetc(FIN);
+			out << ch;
+			in.get(ch);
+			//putc(ch, FOUT);
+			//ch = fgetc(FIN);
 		}
 		//»ØÍËÒ»¸ö,½áÊø
-		ungetc(ch, FIN);
-		Word[i] = '\0';
+		in.seekg(1, ios::cur);
+		//ungetc(ch, FIN);
+		//Word[i] = '\0';
 
 		for (m = 0; m < kk; m++)//±éÀúÕÒÊÇ·ñÎªkeyword
 		{
@@ -134,13 +147,16 @@ int getsym()
 		}
 		if (m == kk) {
 			//²»Çø·Ö´óĞ¡Ğ´,±ä³É´óĞ´
-			for (i = 0; Word[i] != '\0'; i++)
+			for (i = 0;Word.size() ; i++)//Word[i] != '\0'
 			{
 				Word[i] = toupper(Word[i]);
 			}
-			strcpy_s(trans, "_");
-			strcat_s(trans, Word);
-			strcpy_s(Word, trans);
+			trans = "_";
+			//strcpy_s(trans, "_");
+			trans += Word;
+			//strcat_s(trans, Word);
+			//strcpy_s(Word, trans);
+			Word = trans;
 			lastsym = 1;
 			return 1;//²»ÊÇkey word,ÊÇ±êÊ¶·û
 		}
@@ -149,10 +165,14 @@ int getsym()
 	//ÊıÖµ´¦Àí
 	if (isdigit(ch))
 	{
-		putc(ch, FOUT);//Êä³ö
-		while (isdigit((ch = fgetc(FIN))))
+		//putc(ch, FOUT);//Êä³ö
+		out << ch;
+		while (in.get(ch))
 		{
-			putc(ch, FOUT);
+			if (isdigit(ch))
+				break;
+			out << ch;
+			//putc(ch, FOUT);
 			Word[i++] = ch;
 			if (i == MAXWORD)
 			{
@@ -160,22 +180,31 @@ int getsym()
 				error[errornum++] = 1;
 				Word[--i] = '\0';
 				//Ìø¹ı¹ı³¤²¿·Ö
-				ch = fgetc(FIN);
+				in.get(ch);
+				//ch = fgetc(FIN);
 				while (isdigit(ch))
 				{
-					putc(ch, FOUT);
-					ch = fgetc(FIN);
+					out << ch;
+					in.get(ch);
+					//putc(ch, FOUT);
+					//ch = fgetc(FIN);
 				}
-				num = atoi(Word);//½«×Ö·û´®×ª»¯Îª¶ÔÓ¦µÄÊı×Ö
-				ungetc(ch, FIN);
+				ss >> Word;
+				ss << num;
+				//num = ;//½«×Ö·û´®×ª»¯Îª¶ÔÓ¦µÄÊı×Ö
+				//ungetc(ch, FIN);
+				in.seekg(1, ios::cur);
 				lastsym = 2;
 				return 2;//ÊÇÊı×Ö
 			}
 
 		}
-		ungetc(ch, FIN);
+		in.seekg(1, ios::cur);
+		//ungetc(ch, FIN);
 		Word[i] = '\0';
-		num = atoi(Word);//½«×Ö·û´®×ª»¯Îª¶ÔÓ¦µÄÊı×Ö
+		ss >> Word;
+		ss << num;
+		//num = atoi(Word);//½«×Ö·û´®×ª»¯Îª¶ÔÓ¦µÄÊı×Ö
 		lastsym = 2;
 		return 2;//ÊÇÊı×Ö
 	}
@@ -183,7 +212,8 @@ int getsym()
 
 	//·Ö½ç·û
 	i = 34;
-	putc(ch, FOUT);
+	out << ch;
+	//putc(ch, FOUT);
 	switch (ch) {
 
 		//case'\'':
@@ -211,7 +241,8 @@ int getsym()
 		j = 0;
 		while ((ch = fgetc(FIN)) != '"')//²»ÊÇ·Ç¿Õ´®,Æ´ºÏ
 		{
-			putc(ch, FOUT);
+			//putc(ch, FOUT);
+			out << ch;
 			sisstring[j++] = ch;//Æ´ºÏ
 
 			if (j == MAXLENGTH)
@@ -219,12 +250,15 @@ int getsym()
 				printf("warning!×Ö·û´®¹ı³¤\n");
 				sisstring[--j] = '\0';
 				//½áÊø
+				out << ch;
 				//putc(ch,FOUT);
-				ch = fgetc(FIN);
+				//ch = fgetc(FIN);
+				in.get(ch);
 				//Ìø¹ı
 				while (ch != '"')
 				{
-					putc(ch, FOUT);
+					out << ch;
+					//putc(ch, FOUT);
 					j++;
 					if (ch == EOF || j > 100)	//×Ö·û´®¹ı³¤»òÈ±ÉÙ·´ÒıºÅ
 					{
@@ -234,15 +268,18 @@ int getsym()
 					}
 				}
 				getstringname();//»ñµÃ±êºÅ,Ğ´Èë±êºÅ
-				strcpy_s(storestring[stringorder++].sisstring, sisstring);//´æÈë×Ö·û´®	
+				//strcpy_s(storestring[stringorder++].sisstring, sisstring);//´æÈë×Ö·û´®
+				storestring[stringorder++].sisstring = sisstring;
 				lastsym = 5;
 				return 5;//·µ»Ø×Ö·û´®
 			}
 		}
-		putc(ch, FOUT);//Êä³öÁ½±ß½ç·û
+		out << ch;
+		//putc(ch, FOUT);//Êä³öÁ½±ß½ç·û
 		sisstring[j] = '\0';//×Ö·û´®½áÎ²
 		getstringname();//»ñµÃ±êºÅ,Ğ´Èë±êºÅ
-		strcpy_s(storestring[stringorder++].sisstring, sisstring);//´æÈë×Ö·û´®	
+		storestring[stringorder++].sisstring = sisstring;
+		//strcpy_s(storestring[stringorder++].sisstring, sisstring);//´æÈë×Ö·û´®	
 		lastsym = 5;
 		return 5;//·µ»Ø¿Õ×Ö·û´®
 	case'}':
@@ -275,17 +312,21 @@ int getsym()
 		lastsym = 40;
 		return 40;
 	case'/':
-		if ((ch = getc(FIN)) == '/')//ÈôÎªµ¥ĞĞ×¢ÊÍ±êÖ¾
+		if ((ch = in.get()) == '/')//ÈôÎªµ¥ĞĞ×¢ÊÍ±êÖ¾
 		{
-			putc(ch, FOUT);
-			while ((ch = fgetc(FIN)) != '\n')
-				putc(ch, FOUT);//×¢ÊÍÄÚÈİ²»´¦Àí£¬Ö±½ÓÊä³ö
-			putc(ch, FOUT);
+			out << ch;
+			//putc(ch, FOUT);
+			while ((ch = in.get()) != '\n')
+				//putc(ch, FOUT);//×¢ÊÍÄÚÈİ²»´¦Àí£¬Ö±½ÓÊä³ö
+				cout << ch;
+			out << ch;
+			//putc(ch, FOUT);
 			linenum++;
 			printf("%d:\t", linenum);
 			return (getsym());//µİ¹éµ÷ÓÃ£¬´¦ÀíÏÂÒ»ĞĞ´úÂë,²»±ØÓÃgoto
 		}
-		ungetc(ch, FIN);
+		//ungetc(ch, FIN);
+		in.seekg(1, ios::cur);
 		Word[1] = '\0';
 		lastsym = 34;
 		return 34; //½öÎª/
@@ -301,40 +342,52 @@ int getsym()
 			j = 0;
 			Word[j++] = ch;
 			temp = ch;
-			ch = fgetc(FIN);
+			//ch = fgetc(FIN);
+			in.get(ch);
 			if (isdigit(ch))
 			{
 				Word[j++] = ch;
-				putc(ch, FOUT);
-				while (isdigit(ch = fgetc(FIN)))
+				out << ch;
+				//putc(ch, FOUT);
+				while (isdigit(ch = in.get()))
 				{
 					Word[j++] = ch;
-					putc(ch, FOUT);//Æ´ºÏÊı×Ö
+					out << ch;
+					//putc(ch, FOUT);//Æ´ºÏÊı×Ö
 					if (i == MAXWORD)
 					{
 						errorline[errornum] = linenum;
 						error[errornum++] = 1;
 						Word[--j] = '\0';
-						ch = fgetc(FIN);
+						//ch = fgetc(FIN);
+						in.get(ch);
 						while (isdigit(ch))
 						{
-							putc(ch, FOUT);
+							out << ch;
+							//putc(ch, FOUT);
 						}
-						num = atoi(Word);
-						ungetc(ch, FIN);
+						ss >> Word;
+						ss << num;
+						//num = atoi(Word);
+						//ungetc(ch, FIN);
+						in.seekg(1, ios::cur);
 						lastsym = 2;
 						return 2;//´ø·ûºÅµÄÊı×Ö
 					}
 				}
-				ungetc(ch, FIN);
+				//ungetc(ch, FIN);
+				in.seekg(1, ios::cur);
 				Word[j] = '\0';
-				num = atoi(Word);
+				//num = atoi(Word);
+				ss >> Word;
+				ss << num;
 				lastsym = 2;
 				return 2;//´ø·ûºÅµÄÊı×Ö
 			}
 			else
 			{
-				ungetc(ch, FIN);
+				//ungetc(ch, FIN);
+				in.seekg(1, ios::cur);
 				if (temp == '-')
 				{
 					lastsym = 32;
@@ -362,15 +415,17 @@ int getsym()
 			}
 		}
 	case'<':
-		if ((ch = fgetc(FIN)) == '=')
+		if ((ch =in.get()) == '=')
 		{
-			putc(ch, FOUT);
+			out << ch;
+			//putc(ch, FOUT);
 			Word[2] = '\0';
 			lastsym = 50;
 			return 50;//	<=
 		}
 		else {
-			ungetc(ch, FIN);
+			out << ch;
+			//ungetc(ch, FIN);
 			Word[1] = '\0';
 			lastsym = 46;
 			return 46;//	<
@@ -378,44 +433,51 @@ int getsym()
 	case'>':
 		if ((ch = fgetc(FIN)) == '=')
 		{
-			putc(ch, FOUT);
+			out << ch;
+			//putc(ch, FOUT);
 			Word[2] = '\0';
 			lastsym = 49;
 			return 49;//	>=
 		}
 		else
 		{
-			ungetc(ch, FIN);
+			out << ch;
+			//ungetc(ch, FIN);
 			Word[1] = '\0';
 			lastsym = 45;
 			return 45;//	>
 		}
 	case'=':
-		if ((ch = fgetc(FIN)) == '=')
+		if ((ch = in.get()) == '=')
 		{
-			putc(ch, FOUT);
+			out << ch;
+			//putc(ch, FOUT);
 			Word[2] = '\0';
 			lastsym = 47;
 			return 47;//	==
 		}
 		else
 		{
-			ungetc(ch, FIN);
+			out << ch;
+			//ungetc(ch, FIN);
 			Word[1] = '\0';
 			lastsym = 51;
 			return 51;//	=
 		}
 	case'!':
-		if ((ch = fgetc(FIN)) == '=')
+		if ((ch = in.get()) == '=')
 		{
-			putc(ch, FOUT);
+			out << ch;
+			//putc(ch, FOUT);
 			Word[2] = '\0';
 			lastsym = 48;
 			return 48;//	!=
 		}
 		else
-		{							//²»´æÔÚµ¥¶ÀµÄ!×÷Îª²Ù×÷·û
-			ungetc(ch, FIN);
+		{		
+			out << ch;
+			//²»´æÔÚµ¥¶ÀµÄ!×÷Îª²Ù×÷·û
+			//ungetc(ch, FIN);
 			Word[1] = '\0';
 			errorline[errornum] = linenum;
 			error[errornum++] = 2;
@@ -455,7 +517,8 @@ int program()
 	globalvar_end = 0;
 
 	char c;
-	printf("%d:\t", linenum);//Êä³öĞĞºÅ
+	cout << linenum << "\t";
+	//printf("%d:\t", linenum);//Êä³öĞĞºÅ
 	sym = getsym();//¶ÁÈëµ¥´Ê
 	if (sym == 10)//³£Á¿ÉùÃ÷
 	{
@@ -464,8 +527,9 @@ int program()
 		if (constdeclaration())//·µ»Ø1³ö´í
 		{
 			//Ìø¹ıÒ»ÌõÓï¾ä
-			while ((c = fgetc(FIN)) != '\n')
-				putc(c, FOUT);
+			while ((c = in.get()) != '\n')
+				out << c;
+				//putc(c, FOUT);
 			linenum++;
 			printf("\n%d:\t", linenum);
 			sym = getsym();
@@ -478,15 +542,17 @@ int program()
 		sym = getsym();
 		if (sym == 1)//±êÊ¶·û
 		{
-			strcpy_s(name[NumOfC], Word);//´æÈë±êÊ¶·û
+			name[NumOfC] = Word;
+			//strcpy_s(name[NumOfC], Word);//´æÈë±êÊ¶·û
 			sym = getsym();
 			if (sym != 39 && sym != 38 && sym != 37)//ºóÃæÒªÃ´ÊÇ;ÒªÃ´ÊÇ,(±äÁ¿ÉùÃ÷)ÒªÃ´ÊÇ(º¯ÊıÉùÃ÷)
 			{
 				errorline[errornum] = linenum;
 				error[errornum++] = 22;//È±ÉÙ½áÊø·û
 				//Ìø¹ıÒ»ÌõÓï¾ä
-				while ((c = fgetc(FIN)) != '\n')
-					putc(c, FOUT);
+				while ((c = in.get()) != '\n')
+					out << c;
+					//putc(c, FOUT);
 				linenum++;
 				printf("\n%d:\t", linenum);
 				haserror = 1;
@@ -500,7 +566,8 @@ int program()
 				{
 					//Ìø¹ıÒ»ÌõÓï¾ä
 					while ((c = fgetc(FIN)) != '\n')
-						putc(c, FOUT);
+						out << c;
+						//putc(c, FOUT);
 					linenum++;
 					printf("\n%d:\t", linenum);
 					haserror = 1;
@@ -513,8 +580,9 @@ int program()
 				if (returnfunction(11))//ÓĞintÀàĞÍ·µ»ØµÄ
 				{
 					//Ìø¹ıÒ»ÌõÓï¾ä
-					while ((c = fgetc(FIN)) != '\n')
-						putc(c, FOUT);
+					while ((c = in.get()) != '\n')
+						out << c;
+						//putc(c, FOUT);
 					linenum++;
 					printf("\n%d:\t", linenum);
 					haserror = 1;
@@ -524,8 +592,9 @@ int program()
 				{
 					if (mainfunction())
 					{
-						while ((c = fgetc(FIN)) != '\n')
-							putc(c, FOUT);
+						while ((c = in.get()) != '\n')
+							out << c;
+							//putc(c, FOUT);
 						linenum++;
 						printf("\n%d:\t", linenum);
 						haserror = 1;
@@ -538,8 +607,9 @@ int program()
 				{
 					errorline[errornum] = linenum;
 					error[errornum++] = 15;//ÎŞÖ÷º¯Êı
-					while ((c = fgetc(FIN)) != '\n')
-						putc(c, FOUT);
+					while ((c = in.get()) != '\n')
+						out << c;
+						//putc(c, FOUT);
 					linenum++;
 					printf("\n%d:\t", linenum);
 					haserror = 1;
@@ -550,8 +620,9 @@ int program()
 		{
 			errorline[errornum] = linenum;
 			error[errornum++] = 27;//Ó¦Îª±êÊ¶·û
-			while ((c = fgetc(FIN)) != '\n')
-				putc(c, FOUT);
+			while ((c = in.get()) != '\n')
+				out << c;
+				//putc(c, FOUT);
 			linenum++;
 			printf("\n%d:\t", linenum);
 			haserror = 1;
@@ -564,8 +635,9 @@ int program()
 		{
 			if (voidfunction())
 			{
-				while ((c = fgetc(FIN)) != '\n')
-					putc(c, FOUT);
+				while ((c = in.get()) != '\n')
+					out << c;
+					//putc(c, FOUT);
 				linenum++;
 				printf("\n%d:\t", linenum);
 				haserror = 1;
@@ -574,8 +646,9 @@ int program()
 			{
 				if (mainfunction())
 				{
-					while ((c = fgetc(FIN)) != '\n')
-						putc(c, FOUT);
+					while ((c = in.get()) != '\n')
+						out << c;
+						//putc(c, FOUT);
 					linenum++;
 					printf("\n%d:\t", linenum);
 					haserror = 1;
@@ -587,8 +660,9 @@ int program()
 			{
 				errorline[errornum] = linenum;
 				error[errornum++] = 15;//ÎŞÖ÷º¯Êı
-				while ((c = fgetc(FIN)) != '\n')
-					putc(c, FOUT);
+				while ((c = in.get()) != '\n')
+					out << c;
+					//putc(c, FOUT);
 				linenum++;
 				printf("\n%d:\t", linenum);
 				haserror = 1;
@@ -599,8 +673,9 @@ int program()
 			{
 				if (mainfunction())
 				{
-					while ((c = fgetc(FIN)) != '\n')
-						putc(c, FOUT);
+					while ((c = in.get()) != '\n')
+						out << c;
+						//putc(c, FOUT);
 					linenum++;
 					printf("\n%d:\t", linenum);
 					haserror = 1;
@@ -648,7 +723,8 @@ int constdefine()
 	//£¼³£Á¿¶¨Òå£¾          ::=   £¼±êÊ¶·û£¾£½£¼ÕûÊı£¾
 	if ((sym = getsym()) == 1)//ÊÇ±êÊ¶·û
 	{
-		strcpy_s(name[NumOfC], Word);//´æ±êÊ¶·û
+		name[NumOfC] = Word;
+		//strcpy_s(name[NumOfC], Word);//´æ±êÊ¶·û
 		if ((sym = getsym()) == 51)//Îª=ºÅ
 		{
 			sym = getsym();
@@ -694,7 +770,8 @@ int vardefine(int type)
 	{
 		if ((sym = getsym()) == 1)//±êÊ¶·û
 		{
-			strcpy_s(name[NumOfC], Word);//±£´æ±êÊ¶·û
+			name[NumOfC] = Word;
+			//strcpy_s(name[NumOfC], Word);//±£´æ±êÊ¶·û
 			sym = getsym();
 			return(vardefine(type));//type´«µİÏÂÈ¥
 		}
@@ -713,7 +790,8 @@ int vardefine(int type)
 			int i = sym;
 			if ((sym = getsym()) == 1)
 			{
-				strcpy_s(name[NumOfC], Word);//´æÈë±êÊ¶·û
+				name[NumOfC] = Word;
+				//strcpy_s(name[NumOfC], Word);//´æÈë±êÊ¶·û
 				sym = getsym();
 				if (sym == 39 || sym == 38)//·ÖºÅ¶ººÅ
 				{
@@ -2060,6 +2138,7 @@ int gen(string op, string src1, string src2, string dst)//opÊÇÖ¸ÁîĞòºÅ,ÆäËûÈı¸öÊ
 {
 	if (oprnum < MAXOP)//Ö¸Áî²»Òª³¬
 	{
+		opra[oprnum].op = op;
 		strcpy_s(opra[oprnum].op, op);
 		strcpy_s(opra[oprnum].src1, src1);
 		strcpy_s(opra[oprnum].src2, src2);
@@ -2141,10 +2220,7 @@ int getshellsym()//Ààshell³ÌĞò´Ê·¨·ÖÎö,·µ»ØÖµÔÚ
 	return 10;//×÷ÎªÎÄ¼şÃû
 }
 
-
-
 //Ö÷º¯Êı
-
 int main()
 {
 	int c;

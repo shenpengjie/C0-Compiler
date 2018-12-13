@@ -17,13 +17,13 @@
 #define CommandNum	8				//命令条数
 struct aString						//字符串存储结构
 {
-	char sisstring[100];
-	char stringname[10];
+	std::string sisstring;
+	std::string stringname;
 };
 
-char Word[MAXWORD];					//store token
+std::string Word;					//store token
 int num;							//store 整数
-char sisstring[MAXLENGTH];			//单个字符串
+std::string sisstring;			//单个字符串
 aString storestring[MAXLENGTH];		//所有字符串和名字
 int sym;							//store 获得token的标号
 
@@ -57,11 +57,11 @@ std::string shell[] =
 
 
 FILE* FIN, *FOUT;					//输入输出文件指针
-char fp[20];						//输入文件名
+std::string fp;						//输入文件名
 
 
 struct Character {					//符号表
-	char *name;					//名称
+	std::string name;					//名称
 	int type;						//变量常量类型
 	int lev;						//层次,全局是0,其他的按函数顺序编号,不可能有超过1的
 	int adr;						//偏移地址,第一个是0,第二个是4(段内取值第一个是8,第二个是12)
@@ -71,10 +71,10 @@ struct Character {					//符号表
 
 
 struct opr {							//四元式
-	char op[20];								//指令代号
-	char src1[20];						//第一个源操作数
-	char src2[20];						//第二个源操作数					
-	char dst[20];						//目标操作数
+	std::string op;								//指令代号
+	std::string src1;						//第一个源操作数
+	std::string src2;						//第二个源操作数					
+	std::string dst;						//目标操作数
 };
 
 
@@ -132,7 +132,7 @@ int whilestatement();								//while循环语句
 int scanfstatement();								//scanf读语句
 int printfstatement();								//printf写语句
 int returnstatement();								//return语句
-int assignstatement(char* left);					//赋值语句
+int assignstatement(std::string left);					//赋值语句
 int mainfunction();								//主函数
 int call(int a);									//函数调用语句
 int expression();									//表达式
